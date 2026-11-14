@@ -1,0 +1,108 @@
+<Window x:Class="ScheduleCard.CardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="课表卡片" Width="420" Height="300" MinWidth="270" MinHeight="170"
+        Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        ShowInTaskbar="False" ResizeMode="CanResize" WindowStartupLocation="Manual"
+        FontFamily="Segoe UI, Microsoft YaHei UI" Foreground="#E7ECF5"
+        PreviewKeyDown="OnKeyDown" SourceInitialized="OnSourceInitialized">
+    <Window.Resources>
+        <Style x:Key="HeaderButton" TargetType="Button">
+            <Setter Property="Background" Value="#141C2A"/>
+            <Setter Property="Foreground" Value="#BBC7D9"/>
+            <Setter Property="BorderBrush" Value="#394356"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Height" Value="23"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="11" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#273246"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#86A6D4"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Pinned">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#19372D"/>
+                                <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="#43896F"/>
+                                <Setter Property="Foreground" Value="#8CE4BF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ResizeHandle" TargetType="Thumb">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Thumb">
+                        <Border Background="Transparent"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <EventSetter Event="DragStarted" Handler="StartResize"/>
+            <EventSetter Event="DragDelta" Handler="ResizeCard"/>
+            <EventSetter Event="DragCompleted" Handler="FinishResize"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+    <Border Background="#F5090D17" BorderBrush="#343E51" BorderThickness="1" CornerRadius="14" Padding="11,7,11,10">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="29"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Background="Transparent" MouseLeftButtonDown="MoveCard">
+                <TextBlock Text="课表" Foreground="#F2F5FB" FontSize="13" FontWeight="Bold" VerticalAlignment="Center"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button x:Name="PickButton" Content="换图" Style="{StaticResource HeaderButton}" Click="PickImage"/>
+                    <Button x:Name="PinButton" Content="置顶" Style="{StaticResource HeaderButton}" Click="ToggleTopmost"/>
+                    <Button Content="×" Style="{StaticResource HeaderButton}" Padding="0" Width="23" Click="CloseCard"
+                            ToolTip="关闭课表卡片" AutomationProperties.Name="关闭课表卡片"/>
+                </StackPanel>
+            </Grid>
+            <Border x:Name="DropArea" Grid.Row="1" Margin="0,5,0,0" Background="#111927"
+                    BorderBrush="#303B50" BorderThickness="1" CornerRadius="8" AllowDrop="True"
+                    PreviewDragOver="OnDragOver" DragLeave="OnDragLeave" Drop="OnDrop">
+                <Grid>
+                    <Button x:Name="PictureButton" Visibility="Collapsed" Click="OpenPreview"
+                            ToolTip="放大课表" AutomationProperties.Name="放大课表" Cursor="Hand">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border Background="Transparent" Padding="5">
+                                    <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <Image x:Name="Picture" Stretch="Uniform"/>
+                    </Button>
+                    <StackPanel x:Name="EmptyHint" VerticalAlignment="Center" HorizontalAlignment="Center" IsHitTestVisible="False">
+                        <TextBlock Text="拖入课表图片" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                        <TextBlock Text="也可以按 Ctrl+V 粘贴截图" Margin="0,7,0,0" FontSize="11" Foreground="#AEB8CA" HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            <TextBlock x:Name="Status" Grid.Row="2" Visibility="Collapsed" Foreground="#F0B3B9" FontSize="11" Margin="0,6,15,0" TextWrapping="Wrap"/>
+        </Grid>
+    </Border>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="Left" Width="7" Margin="0,14" HorizontalAlignment="Left" Cursor="SizeWE"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="Right" Width="7" Margin="0,14" HorizontalAlignment="Right" Cursor="SizeWE"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="Top" Height="7" Margin="14,0" VerticalAlignment="Top" Cursor="SizeNS"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="Bottom" Height="7" Margin="14,0" VerticalAlignment="Bottom" Cursor="SizeNS"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="TopLeft" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Top" Cursor="SizeNWSE"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="TopRight" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Top" Cursor="SizeNESW"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="BottomLeft" Width="14" Height="14" HorizontalAlignment="Left" VerticalAlignment="Bottom" Cursor="SizeNESW"/>
+        <Thumb Style="{StaticResource ResizeHandle}" Tag="BottomRight" Width="14" Height="14" HorizontalAlignment="Right" VerticalAlignment="Bottom" Cursor="SizeNWSE"/>
+    </Grid>
+</Window>
